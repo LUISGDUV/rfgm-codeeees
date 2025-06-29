@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manutenção e Reparo Profissional</title>
+    <!-- Inclui o Tailwind CSS para estilização fácil -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define a fonte Inter para todo o corpo */
+        body {
+            font-family: "Inter", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Fundo totalmente transparente para a página principal */
+            background-color: transparent;
+            margin: 0;
+            padding: 20px; /* Adicionado padding para garantir espaço nas bordas */
+            box-sizing: border-box;
+            position: relative; /* Para posicionar o container de estrelas */
+        }
+
+        /* Container para as estrelas, cobrindo toda a tela e com fundo transparente */
+        .stars-container {
+            position: fixed; /* Fixado para ficar no fundo enquanto a página rola */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%; /* Ajustado para 100% da viewport, fixo */
+            pointer-events: none; /* Permite que cliques passem por ele */
+            z-index: -1; /* Fica atrás do conteúdo principal */
+            /* Fundo agora é completamente transparente */
+            background: transparent; /* Alterado de gradiente para transparente */
+            overflow: hidden; /* Garante que as estrelas fora da tela não causem barras de rolagem */
+        }
+
+        /* Estilo base para cada estrela */
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0; /* Inicia invisível */
+            animation-iteration-count: infinite;
+            animation-timing-function: linear; /* Para movimento mais contínuo */
+        }
+
+        /* Animação combinada de movimento (passando) e brilho (twinkle) */
+        @keyframes moveAndTwinkle {
+            0% {
+                /* Começa bem à direita, fora da tela, com opacidade zero */
+                transform: translateX(100vw) translateY(var(--initial-y)) scale(var(--initial-scale));
+                opacity: 0;
+            }
+            10% {
+                /* Aparece e ganha opacidade */
+                opacity: var(--max-opacity);
+            }
+            90% {
+                opacity: var(--max-opacity); /* Mantém opacidade durante a maior parte do movimento */
+            }
+            100% {
+                /* Termina à esquerda, fora da tela, com opacidade zero */
+                transform: translateX(-20vw) translateY(var(--final-y)) scale(var(--initial-scale));
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="relative z-10 p-8 max-w-2xl mx-auto bg-white bg-opacity-10 rounded-xl shadow-2xl backdrop-blur-sm text-white text-lg leading-relaxed text-center flex flex-col items-center my-20">
+        <p class="font-bold text-2xl mb-4">Serviços de Manutenção e Reparo</p>
+        <p>A manutenção e o reparo de geladeiras, freezers, bebedouros e balcões de exposição focam no ciclo de refrigeração (compressor, gás, termostato, degelo) para garantir resfriamento e congelamento adequados.</p>
+        <p class="mt-4">Já as máquinas de lavar exigem atenção aos sistemas elétrico, mecânico (motor, correia, rolamentos) e hidráulico (válvulas, bombas, mangueiras).</p>
+        <p class="mt-4 mb-8">Por fim, a remoção e instalação de ar condicionado requerem manuseio seguro do gás refrigerante, conexões corretas de tubulação e elétrica, vácuo no sistema e testes para eficiência e segurança.</p>
+
+        <!-- Seção de Diagnóstico Inteligente com Gemini API -->
+        <div class="w-full mt-8 pt-8 border-t border-gray-600">
+            <h3 class="font-bold text-xl mb-4">Diagnóstico Inteligente ✨</h3>
+            <p class="text-base mb-4">Descreva o problema do seu eletrodoméstico e obtenha uma sugestão de diagnóstico:</p>
+            <textarea
+                id="problemDescription"
+                class="w-full p-3 rounded-lg bg-gray-700 bg-opacity-50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 h-32 resize-none"
+                placeholder="Ex: Minha geladeira não está gelando a parte de baixo, mas o freezer funciona."
+            ></textarea>
+            <button
+                id="getDiagnosisButton"
+                class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300 focus:ring-opacity-75"
+            >
+                Obter Diagnóstico ✨
+            </button>
+            <div id="diagnosisResult" class="mt-6 p-4 bg-gray-800 bg-opacity-40 rounded-lg text-white text-base text-left hidden"
+                style="max-height: 300px; overflow-y: auto;"> <!-- Adicionado max-height e overflow-y -->
+                <p class="font-semibold mb-2">Possível Diagnóstico:</p>
+                <div id="diagnosisContent" class="whitespace-pre-wrap"></div>
+            </div>
+            <div id="loadingIndicator" class="hidden mt-4 text-white">
+                <svg class="animate-spin h-5 w-5 mr-3 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 A7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Gerando diagnóstico...
+            </div>
+        </div>
+    </div>
+
+    <div class="stars-container"></div> <!-- Container onde as estrelas serão geradas e animadas -->
+
+    <script>
+        // Função para criar estrelas aleatoriamente
+        function createStars(count) {
+            const starsContainer = document.querySelector('.stars-container');
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+
+                // Posicionamento Y inicial aleatório para a estrela
+                const initialY = Math.random() * 100; // em % vh (altura da viewport)
+                star.style.top = initialY + 'vh';
+
+                // Varia o tamanho da estrela para um efeito mais natural
+                const size = Math.random() * 2 + 1; // De 1px a 3px
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+
+                // Define variáveis CSS para a animação, permitindo variação individual
+                star.style.setProperty('--initial-y', `${initialY}vh`);
+                // Define um Y final para um leve movimento diagonal enquanto "passa"
+                star.style.setProperty('--final-y', `${initialY + (Math.random() - 0.5) * 50}vh`); // Varia em +- 25vh
+                star.style.setProperty('--initial-scale', `${size / 2}`);
+                star.style.setProperty('--max-opacity', `${Math.random() * 0.7 + 0.3}`); // Opacidade máxima entre 0.3 e 1 para brilho variado
+
+                // Duração da animação (velocidade de "passagem" da estrela)
+                const duration = Math.random() * 15 + 10; // De 10s a 25s
+                star.style.animationDuration = duration + 's';
+                // Delay para que as estrelas apareçam em momentos diferentes
+                star.style.animationDelay = (Math.random() * duration) + 's';
+                star.style.animationName = 'moveAndTwinkle'; // Aplica a animação definida no CSS
+
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Gera um número adequado de estrelas para um campo estelar denso
+        createStars(400); // Gerando 400 estrelas
+
+
+        // Lógica para a integração com a API Gemini
+        const problemDescriptionInput = document.getElementById('problemDescription');
+        const getDiagnosisButton = document.getElementById('getDiagnosisButton');
+        const diagnosisResultDiv = document.getElementById('diagnosisResult');
+        const diagnosisContentDiv = document.getElementById('diagnosisContent');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+        getDiagnosisButton.addEventListener('click', async () => {
+            const problem = problemDescriptionInput.value.trim();
+            if (!problem) {
+                diagnosisContentDiv.textContent = 'Por favor, descreva o problema para obter um diagnóstico.';
+                diagnosisResultDiv.classList.remove('hidden');
+                return;
+            }
+
+            loadingIndicator.classList.remove('hidden'); // Mostra o indicador de carregamento
+            diagnosisResultDiv.classList.add('hidden'); // Esconde o resultado anterior
+
+            try {
+                let chatHistory = [];
+                // PRÓMPT ATUALIZADO: Inclui a instrução para mencionar a Refrigeração GM
+                const prompt = `Como um técnico de manutenção de eletrodomésticos, forneça um diagnóstico conciso e possíveis causas ou passos iniciais para o seguinte problema: "${problem}". Inclua uma recomendação para entrar em contato com a Refrigeração GM imediatamente. Seja direto e liste os pontos.`;
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // A chave da API será fornecida em tempo de execução no ambiente Canvas
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json(); // Espera a resposta JSON
+                console.log("Resposta da API Gemini:", result); // Log da resposta completa para depuração
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const diagnosisText = result.candidates[0].content.parts[0].text;
+                    diagnosisContentDiv.textContent = diagnosisText;
+                    diagnosisResultDiv.classList.remove('hidden');
+                } else {
+                    diagnosisContentDiv.textContent = 'Não foi possível gerar um diagnóstico. Tente novamente ou reformule sua descrição.';
+                    diagnosisResultDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Erro ao chamar a API Gemini:', error);
+                diagnosisContentDiv.textContent = 'Ocorreu um erro ao tentar obter o diagnóstico. Verifique sua conexão ou tente novamente mais tarde.';
+                diagnosisResultDiv.classList.remove('hidden');
+            } finally {
+                loadingIndicator.classList.add('hidden'); // Esconde o indicador de carregamento
+            }
+        });
+    </script>
+
+</body>
+</html>

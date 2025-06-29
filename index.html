@@ -171,7 +171,10 @@
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
                 const payload = { contents: chatHistory };
-                const apiKey = ""; // A chave da API será fornecida em tempo de execução no ambiente Canvas
+                // === ATENÇÃO: SUBSTITUA ESTA CHAVE PELA SUA CHAVE REAL DA API DO GEMINI ===
+                // Você pode obter sua chave em https://aistudio.google.com/app/apikey
+                const apiKey = "AIzaSyCmPzf5q1GHVWggy4BitYXYh_lRes7Xl9A"; // <-- **SUBSTITUA ESTA LINHA**
+                // =========================================================================
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 const response = await fetch(apiUrl, {
